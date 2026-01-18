@@ -127,12 +127,18 @@
       "agent_id": "696d549fc3a33af8ef060e61",
       "name": "Business Rules Agent",
       "type": "sub-agent",
-      "description": "Validates employee eligibility and expense context by checking work location, staff restaurant access, travel authorization status, department budgets, and time/location reasonableness of the expense",
+      "description": "Validates employee eligibility and expense context by consulting the Business Rules Knowledge Base for policies on work location, staff restaurant access, travel authorization, department budgets, and expense reasonableness",
       "provider": "OpenAI",
       "model": "gpt-4.1",
       "temperature": 0.2,
       "top_p": 1,
-      "response_schema": "response_schemas/business_rules_agent_response.json"
+      "response_schema": "response_schemas/business_rules_agent_response.json",
+      "knowledge_base": {
+        "rag_id": "696d64293243aa6a020558a3",
+        "rag_name": "businessrulesknowledgebaseru1x",
+        "name": "Business Rules Knowledge Base",
+        "description": "Contains business rules documentation for employee eligibility, work location policies, travel authorization requirements, department budget guidelines, staff restaurant access rules, and expense reasonableness criteria"
+      }
     },
     {
       "agent_id": "696d54bcc3a33af8ef060e65",

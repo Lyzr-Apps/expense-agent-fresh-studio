@@ -19,8 +19,13 @@
       "name": "Business Rules Agent",
       "agent_id": "696d549fc3a33af8ef060e61",
       "type": "sub-agent",
-      "status": "created",
-      "response_schema": "response_schemas/business_rules_agent_response.json"
+      "status": "updated_with_knowledge_base",
+      "response_schema": "response_schemas/business_rules_agent_response.json",
+      "knowledge_base": {
+        "rag_id": "696d64293243aa6a020558a3",
+        "rag_name": "businessrulesknowledgebaseru1x",
+        "name": "Business Rules Knowledge Base"
+      }
     },
     {
       "name": "Expense Validation Manager",
