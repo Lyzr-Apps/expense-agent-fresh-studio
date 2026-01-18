@@ -38,7 +38,11 @@ import {
   CheckCircle2,
   Info,
   Trash2,
-  X
+  X,
+  Brain,
+  Lightbulb,
+  RefreshCw,
+  Zap
 } from 'lucide-react'
 import { callAIAgent, uploadFiles, type NormalizedAgentResponse } from '@/utils/aiAgent'
 import { formatFileSize } from '@/utils/fileUpload'
@@ -224,6 +228,15 @@ interface KBDocument {
   url?: string
 }
 
+// WebSocket Event Structure
+interface WebSocketEvent {
+  event_type: 'thinking' | 'processing' | 'completion' | 'error'
+  status: 'in_progress' | 'completed' | 'failed'
+  message: string
+  timestamp: string
+  session_id?: string
+}
+
 // Agent IDs
 const AGENT_IDS = {
   EXPENSE_VALIDATION_MANAGER: '696d54bcc3a33af8ef060e65',
@@ -263,6 +276,172 @@ function formatDate(dateString: string): string {
     month: 'short',
     day: 'numeric'
   })
+}
+
+function formatTime(timestamp: string): string {
+  try {
+    return new Date(timestamp).toLocaleTimeString('de-CH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  } catch {
+    return new Date().toLocaleTimeString('de-CH', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    })
+  }
+}
+
+// =============================================================================
+// WebSocket Hook for Real-time Agent Activity
+// =============================================================================
+
+function useAgentWebSocket(sessionId: string | null) {
+  const [events, setEvents] = useState<WebSocketEvent[]>([])
+  const [isConnected, setIsConnected] = useState(false)
+
+  useEffect(() => {
+    if (!sessionId) {
+      setEvents([])
+      setIsConnected(false)
+      return
+    }
+
+    const apiKey = import.meta.env.VITE_LYZR_API_KEY || ''
+    if (!apiKey) {
+      console.error('VITE_LYZR_API_KEY not configured')
+      return
+    }
+
+    const wsUrl = `wss://metrics.studio.lyzr.ai/ws/${sessionId}?x-api-key=${apiKey}`
+    const ws = new WebSocket(wsUrl)
+
+    ws.onopen = () => {
+      setIsConnected(true)
+      console.log('WebSocket connected:', sessionId)
+    }
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data) as WebSocketEvent
+        setEvents(prev => [...prev, data])
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error)
+      }
+    }
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error)
+      setIsConnected(false)
+    }
+
+    ws.onclose = () => {
+      setIsConnected(false)
+      console.log('WebSocket disconnected')
+    }
+
+    return () => {
+      ws.close()
+    }
+  }, [sessionId])
+
+  return { events, isConnected }
+}
+
+// =============================================================================
+// Activity Stream Component
+// =============================================================================
+
+function ActivityStream({ events, isConnected }: { events: WebSocketEvent[], isConnected: boolean }) {
+  const getEventIcon = (eventType: WebSocketEvent['event_type']) => {
+    switch (eventType) {
+      case 'thinking':
+        return <Brain className="h-4 w-4" style={{ color: SWISSCOM_COLORS.ACTION_BLUE }} />
+      case 'processing':
+        return <RefreshCw className="h-4 w-4 animate-spin" style={{ color: SWISSCOM_COLORS.ACTION_BLUE }} />
+      case 'completion':
+        return <CheckCircle className="h-4 w-4 text-green-600" />
+      case 'error':
+        return <XCircle className="h-4 w-4" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+      default:
+        return <Zap className="h-4 w-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+    }
+  }
+
+  const getStatusBadge = (status: WebSocketEvent['status']) => {
+    switch (status) {
+      case 'in_progress':
+        return <Badge variant="outline" className="text-xs" style={{ color: SWISSCOM_COLORS.ACTION_BLUE, borderColor: SWISSCOM_COLORS.ACTION_BLUE }}>In Progress</Badge>
+      case 'completed':
+        return <Badge variant="outline" className="text-xs text-green-600 border-green-600">Completed</Badge>
+      case 'failed':
+        return <Badge variant="outline" className="text-xs" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED, borderColor: SWISSCOM_COLORS.SWISSCOM_RED }}>Failed</Badge>
+      default:
+        return null
+    }
+  }
+
+  return (
+    <Card className="border-2" style={{ borderColor: SWISSCOM_COLORS.CARD_BG, backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
+            Real-time Activity Stream
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "h-2 w-2 rounded-full",
+              isConnected ? "bg-green-500 animate-pulse" : "bg-gray-400"
+            )} />
+            <span className="text-xs" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+              {isConnected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+        </div>
+        <div
+          className="h-1 rounded-full mt-2"
+          style={{
+            background: `linear-gradient(to right, ${SWISSCOM_COLORS.GRADIENT_START}, ${SWISSCOM_COLORS.GRADIENT_MID}, ${SWISSCOM_COLORS.GRADIENT_END})`
+          }}
+        />
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[300px] pr-3">
+          {events.length === 0 ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 mx-auto mb-2 animate-spin" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+              <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                Waiting for agent activity...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {events.map((event, index) => (
+                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-white border border-gray-200">
+                  <div className="mt-0.5">
+                    {getEventIcon(event.event_type)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-mono" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                        {formatTime(event.timestamp)}
+                      </span>
+                      {getStatusBadge(event.status)}
+                    </div>
+                    <p className="text-sm" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>
+                      {event.message}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  )
 }
 
 // =============================================================================
@@ -507,6 +686,10 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
   const [progress, setProgress] = useState(0)
   const [result, setResult] = useState<NormalizedAgentResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+
+  // WebSocket hook for real-time activity
+  const { events, isConnected } = useAgentWebSocket(sessionId)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -526,6 +709,7 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
     setProgress(10)
     setError(null)
     setResult(null)
+    setSessionId(null)
 
     try {
       // Upload receipt if provided
@@ -544,11 +728,20 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
       // Build message for Expense Validation Manager
       const message = `Process expense submission: Employee John Doe (ID: EMP-12345) uploaded a ${category} receipt for ${formatCurrency(parseFloat(amount))} from ${merchant} on ${date}. Category: ${category}. Employee location: Zurich office. ${description ? `Notes: ${description}` : ''}`
 
-      // Call Expense Validation Manager
+      // Generate session_id for WebSocket
+      const generatedSessionId = `exp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+
+      // Set session_id to start WebSocket connection
+      setSessionId(generatedSessionId)
+
+      // Call Expense Validation Manager with session_id
       const agentResult = await callAIAgent(
         message,
         AGENT_IDS.EXPENSE_VALIDATION_MANAGER,
-        assetIds ? { assets: assetIds } : undefined
+        {
+          session_id: generatedSessionId,
+          ...(assetIds ? { assets: assetIds } : {})
+        }
       )
 
       setProgress(90)
@@ -585,174 +778,233 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
       localStorage.setItem('expenses', JSON.stringify(expenses))
 
       setTimeout(() => {
+        // Keep WebSocket open for a few more seconds to see final events
+        setTimeout(() => setSessionId(null), 3000)
         onSubmitComplete(newExpense)
       }, 500)
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Submission failed')
       setProgress(0)
+      setSessionId(null)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Submit Expense</h1>
         <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Upload receipt and expense details</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Expense Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="receipt">Receipt Upload</Label>
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#0541FF] transition-colors">
-                <Input
-                  id="receipt"
-                  type="file"
-                  accept=".jpg,.jpeg,.png,.pdf"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <label htmlFor="receipt" className="cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto mb-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
-                  <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
-                    {file ? file.name : 'Click to upload or drag and drop'}
-                  </p>
-                  <p className="text-xs mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>JPG, PNG, PDF up to 10MB</p>
-                </label>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Expense Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Expense Details</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={setCategory} required>
-                  <SelectTrigger id="category">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Meals">Meals</SelectItem>
-                    <SelectItem value="Travel">Travel</SelectItem>
-                    <SelectItem value="Accommodation">Accommodation</SelectItem>
-                    <SelectItem value="Office Supplies">Office Supplies</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="amount">Amount (CHF)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="merchant">Merchant</Label>
-                <Input
-                  id="merchant"
-                  value={merchant}
-                  onChange={(e) => setMerchant(e.target.value)}
-                  placeholder="Restaurant ABC"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Notes (Optional)</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Additional details about this expense..."
-                rows={3}
-              />
-            </div>
-
-            {loading && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing expense validation...
+                <Label htmlFor="receipt">Receipt Upload</Label>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#0541FF] transition-colors">
+                  <Input
+                    id="receipt"
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  <label htmlFor="receipt" className="cursor-pointer">
+                    <Upload className="h-12 w-12 mx-auto mb-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                    <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                      {file ? file.name : 'Click to upload or drag and drop'}
+                    </p>
+                    <p className="text-xs mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>JPG, PNG, PDF up to 10MB</p>
+                  </label>
                 </div>
-                <Progress value={progress} className="h-2" style={{ background: `linear-gradient(to right, ${SWISSCOM_COLORS.GRADIENT_START}, ${SWISSCOM_COLORS.GRADIENT_MID}, ${SWISSCOM_COLORS.GRADIENT_END})` }} />
               </div>
-            )}
 
-            {error && (
-              <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
-                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>{error}</p>
-              </div>
-            )}
-
-            {result && (
-              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
-                <div className="flex items-center gap-2">
-                  {result.status === 'success' ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
-                  )}
-                  <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
-                    {result.status === 'success' ? 'Validation Complete' : 'Validation Error'}
-                  </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Select value={category} onValueChange={setCategory} required>
+                    <SelectTrigger id="category">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Meals">Meals</SelectItem>
+                      <SelectItem value="Travel">Travel</SelectItem>
+                      <SelectItem value="Accommodation">Accommodation</SelectItem>
+                      <SelectItem value="Office Supplies">Office Supplies</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                {result.result && (
-                  <div className="text-sm space-y-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
-                    <p><strong>Decision:</strong> {(result.result as ExpenseValidationResult).final_decision}</p>
-                    {(result.result as ExpenseValidationResult).aggregated_recommendation && (
-                      <p className="mt-2">{(result.result as ExpenseValidationResult).aggregated_recommendation}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
 
-            <Button
-              type="submit"
-              className="w-full hover:opacity-90"
-              style={{ backgroundColor: SWISSCOM_COLORS.ACTION_BLUE }}
-              disabled={loading || !category || !amount || !date || !merchant}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Submit Expense'
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount (CHF)</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="merchant">Merchant</Label>
+                  <Input
+                    id="merchant"
+                    value={merchant}
+                    onChange={(e) => setMerchant(e.target.value)}
+                    placeholder="Restaurant ABC"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Notes (Optional)</Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Additional details about this expense..."
+                  rows={3}
+                />
+              </div>
+
+              {error && (
+                <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                  <p className="text-sm" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>{error}</p>
+                </div>
               )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
+              {result && (
+                <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+                  <div className="flex items-center gap-2">
+                    {result.status === 'success' ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <AlertCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                    )}
+                    <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
+                      {result.status === 'success' ? 'Validation Complete' : 'Validation Error'}
+                    </p>
+                  </div>
+                  {result.result && (
+                    <div className="text-sm space-y-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                      <p><strong>Decision:</strong> {(result.result as ExpenseValidationResult).final_decision}</p>
+                      {(result.result as ExpenseValidationResult).aggregated_recommendation && (
+                        <p className="mt-2">{(result.result as ExpenseValidationResult).aggregated_recommendation}</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <Button
+                type="submit"
+                className="w-full hover:opacity-90"
+                style={{ backgroundColor: SWISSCOM_COLORS.ACTION_BLUE }}
+                disabled={loading || !category || !amount || !date || !merchant}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  'Submit Expense'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Right: Activity Stream */}
+        <div className="space-y-6">
+          {loading && (
+            <>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span style={{ color: SWISSCOM_COLORS.BODY_TEXT }} className="font-medium">
+                    Validating Expense...
+                  </span>
+                  <span style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                    {progress}%
+                  </span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+                  <div
+                    className="h-full transition-all duration-300"
+                    style={{
+                      width: `${progress}%`,
+                      background: `linear-gradient(to right, ${SWISSCOM_COLORS.GRADIENT_START}, ${SWISSCOM_COLORS.GRADIENT_MID}, ${SWISSCOM_COLORS.GRADIENT_END})`
+                    }}
+                  />
+                </div>
+              </div>
+
+              <ActivityStream events={events} isConnected={isConnected} />
+            </>
+          )}
+
+          {!loading && events.length === 0 && (
+            <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+              <CardContent className="pt-6 text-center py-12">
+                <Lightbulb className="h-16 w-16 mx-auto mb-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                <p className="text-lg font-medium" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>Real-time Validation</p>
+                <p className="text-sm mt-2" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                  When you submit an expense, you'll see live updates from the validation manager as it coordinates with sub-agents
+                </p>
+                <div className="mt-4 space-y-2 text-xs text-left max-w-sm mx-auto" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                  <div className="flex items-start gap-2">
+                    <Brain className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: SWISSCOM_COLORS.ACTION_BLUE }} />
+                    <span>Manager agent coordination</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <RefreshCw className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: SWISSCOM_COLORS.ACTION_BLUE }} />
+                    <span>Receipt authentication checks</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-green-600" />
+                    <span>Policy compliance validation</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Zap className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: SWISSCOM_COLORS.GRADIENT_MID }} />
+                    <span>Business rules verification</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!loading && events.length > 0 && (
+            <ActivityStream events={events} isConnected={isConnected} />
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -1355,9 +1607,9 @@ function BusinessRulesView() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           rag_id: RAG_ID,
-          files: uploadResult.assets?.map(asset => ({
-            filename: asset.file_name,
-            url: asset.url
+          files: uploadResult.files?.map(f => ({
+            filename: f.file_name,
+            asset_id: f.asset_id
           })) || []
         })
       })
@@ -1375,7 +1627,7 @@ function BusinessRulesView() {
         upload_date: new Date().toISOString(),
         file_size: file.size,
         category: selectedCategories.join(', '),
-        url: uploadResult.assets?.[index]?.url
+        url: uploadResult.files?.[index]?.asset_id
       }))
 
       // Update state and localStorage
