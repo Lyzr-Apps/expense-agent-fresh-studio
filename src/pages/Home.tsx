@@ -355,6 +355,43 @@ function useAgentWebSocket(sessionId: string | null) {
 // =============================================================================
 
 function ActivityStream({ events, isConnected }: { events: WebSocketEvent[], isConnected: boolean }) {
+  // Parse event message to extract sub-agent activity
+  const parseActivityMessage = (event: WebSocketEvent): string | null => {
+    const msg = event.message?.toLowerCase() || ''
+
+    // Detect sub-agent calls
+    if (msg.includes('receipt authenticator') || msg.includes('receipt authentication')) {
+      return 'Analyzing receipt for authenticity...'
+    }
+    if (msg.includes('policy compliance')) {
+      return 'Checking policy compliance...'
+    }
+    if (msg.includes('business rules')) {
+      return 'Validating business rules...'
+    }
+    if (msg.includes('aggregat')) {
+      return 'Aggregating validation results...'
+    }
+    if (msg.includes('manager') && msg.includes('start')) {
+      return 'Starting expense validation...'
+    }
+    if (msg.includes('validat') && msg.includes('start')) {
+      return 'Starting expense validation...'
+    }
+
+    // Filter out other events
+    return null
+  }
+
+  // Filter events to only show sub-agent activities
+  const filteredEvents = events
+    .map((event, index) => ({
+      ...event,
+      parsedMessage: parseActivityMessage(event),
+      originalIndex: index
+    }))
+    .filter(event => event.parsedMessage !== null)
+
   const getEventIcon = (eventType: WebSocketEvent['event_type']) => {
     switch (eventType) {
       case 'thinking':
@@ -416,10 +453,17 @@ function ActivityStream({ events, isConnected }: { events: WebSocketEvent[], isC
                 Waiting for agent activity...
               </p>
             </div>
+          ) : filteredEvents.length === 0 ? (
+            <div className="text-center py-8">
+              <RefreshCw className="h-8 w-8 mx-auto mb-2 animate-spin" style={{ color: SWISSCOM_COLORS.ACTION_BLUE }} />
+              <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                Processing validation...
+              </p>
+            </div>
           ) : (
             <div className="space-y-3">
-              {events.map((event, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 rounded-lg bg-white border border-gray-200">
+              {filteredEvents.map((event, index) => (
+                <div key={event.originalIndex} className="flex items-start gap-3 p-3 rounded-lg bg-white border border-gray-200">
                   <div className="mt-0.5">
                     {getEventIcon(event.event_type)}
                   </div>
@@ -431,7 +475,7 @@ function ActivityStream({ events, isConnected }: { events: WebSocketEvent[], isC
                       {getStatusBadge(event.status)}
                     </div>
                     <p className="text-sm" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>
-                      {event.message}
+                      {event.parsedMessage}
                     </p>
                   </div>
                 </div>
