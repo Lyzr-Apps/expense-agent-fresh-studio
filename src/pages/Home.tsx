@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Home as HomeIcon,
   FileText,
@@ -35,9 +36,12 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Info
+  Info,
+  Trash2,
+  X
 } from 'lucide-react'
 import { callAIAgent, uploadFiles, type NormalizedAgentResponse } from '@/utils/aiAgent'
+import { formatFileSize } from '@/utils/fileUpload'
 
 // =============================================================================
 // SWISSCOM DESIGN SYSTEM - EXACT HEX COLORS
@@ -210,6 +214,16 @@ interface Expense {
   days_pending?: number
 }
 
+// Knowledge Base Document Structure
+interface KBDocument {
+  id: string
+  filename: string
+  upload_date: string
+  file_size: number
+  category: string
+  url?: string
+}
+
 // Agent IDs
 const AGENT_IDS = {
   EXPENSE_VALIDATION_MANAGER: '696d54bcc3a33af8ef060e65',
@@ -218,6 +232,19 @@ const AGENT_IDS = {
   BUSINESS_RULES: '696d549fc3a33af8ef060e61',
   MANAGER_DECISION: '696d54e8e1e4c42b224aff77'
 }
+
+// Knowledge Base RAG ID
+const RAG_ID = '696d64293243aa6a020558a3'
+
+// Document Categories
+const DOCUMENT_CATEGORIES = [
+  'Employee Eligibility Policies',
+  'Work Location Rules',
+  'Travel Authorization Requirements',
+  'Department Budget Guidelines',
+  'Staff Restaurant Access',
+  'Expense Reasonableness Standards'
+]
 
 // =============================================================================
 // Utility Functions
@@ -279,6 +306,7 @@ function Sidebar({ currentView, onViewChange, userRole }: {
 
   const managerItems = [
     { id: 'manager-queue', label: 'Review Queue', icon: AlertTriangle },
+    { id: 'business-rules', label: 'Business Rules', icon: FileText },
     { id: 'dashboard', label: 'Dashboard', icon: HomeIcon }
   ]
 
@@ -1210,6 +1238,396 @@ function ManagerQueueView({ expenses, onViewExpense }: {
   )
 }
 
+function BusinessRulesView() {
+  const [documents, setDocuments] = useState<KBDocument[]>([])
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [dragActive, setDragActive] = useState(false)
+
+  // Load documents from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem('kb_documents')
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored)
+        setDocuments(parsed)
+      } catch (e) {
+        console.error('Failed to parse stored documents', e)
+      }
+    }
+  }, [])
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true)
+    } else if (e.type === 'dragleave') {
+      setDragActive(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const files = Array.from(e.dataTransfer.files)
+      handleFiles(files)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files)
+      handleFiles(files)
+    }
+  }
+
+  const handleFiles = (files: File[]) => {
+    const validFiles = files.filter(file => {
+      const validTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+      const isValidType = validTypes.includes(file.type)
+      const isValidSize = file.size <= 10 * 1024 * 1024 // 10MB
+
+      if (!isValidType) {
+        setError(`${file.name}: Invalid file type. Only PDF, DOCX, and TXT are allowed.`)
+        return false
+      }
+      if (!isValidSize) {
+        setError(`${file.name}: File size must be less than 10MB`)
+        return false
+      }
+      return true
+    })
+
+    setSelectedFiles(prev => [...prev, ...validFiles])
+    setError(null)
+  }
+
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+  }
+
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) {
+      setError('Please select at least one file to upload')
+      return
+    }
+
+    if (selectedCategories.length === 0) {
+      setError('Please select at least one document category')
+      return
+    }
+
+    setUploading(true)
+    setUploadProgress(10)
+    setError(null)
+    setSuccess(null)
+
+    try {
+      // Upload files
+      setUploadProgress(30)
+      const uploadResult = await uploadFiles(selectedFiles)
+
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.error || 'File upload failed')
+      }
+
+      setUploadProgress(60)
+
+      // Call ingest API
+      const ingestResponse = await fetch('/api/ingest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rag_id: RAG_ID,
+          files: uploadResult.assets?.map(asset => ({
+            filename: asset.file_name,
+            url: asset.url
+          })) || []
+        })
+      })
+
+      if (!ingestResponse.ok) {
+        throw new Error('Failed to ingest documents into knowledge base')
+      }
+
+      setUploadProgress(90)
+
+      // Create document records
+      const newDocs: KBDocument[] = selectedFiles.map((file, index) => ({
+        id: `doc-${Date.now()}-${index}`,
+        filename: file.name,
+        upload_date: new Date().toISOString(),
+        file_size: file.size,
+        category: selectedCategories.join(', '),
+        url: uploadResult.assets?.[index]?.url
+      }))
+
+      // Update state and localStorage
+      const updatedDocs = [...newDocs, ...documents]
+      setDocuments(updatedDocs)
+      localStorage.setItem('kb_documents', JSON.stringify(updatedDocs))
+
+      setUploadProgress(100)
+      setSuccess(`Successfully uploaded ${selectedFiles.length} document(s) to the knowledge base`)
+
+      // Reset form
+      setSelectedFiles([])
+      setSelectedCategories([])
+
+      setTimeout(() => {
+        setUploadProgress(0)
+        setSuccess(null)
+      }, 3000)
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
+      setUploadProgress(0)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDelete = (docId: string) => {
+    const doc = documents.find(d => d.id === docId)
+    if (!doc) return
+
+    const updatedDocs = documents.filter(d => d.id !== docId)
+    setDocuments(updatedDocs)
+    localStorage.setItem('kb_documents', JSON.stringify(updatedDocs))
+    setSuccess(`Deleted ${doc.filename}`)
+    setTimeout(() => setSuccess(null), 3000)
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Business Rules Knowledge Base</h1>
+        <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Upload policy documents to configure expense validation rules</p>
+      </div>
+
+      {error && (
+        <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+          <p className="text-sm" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>{error}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="flex items-start gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+          <CheckCircle2 className="h-5 w-5 mt-0.5 text-green-600" />
+          <p className="text-sm text-green-600">{success}</p>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left: Upload Zone */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Upload Documents</CardTitle>
+              <CardDescription>Add policy documents to the knowledge base</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Drag and Drop Zone */}
+              <div
+                className={cn(
+                  'border-2 border-dashed rounded-lg p-8 text-center transition-all',
+                  dragActive ? 'border-[#0541FF] bg-blue-50' : 'border-gray-300',
+                  'hover:border-[#0541FF] hover:bg-gray-50'
+                )}
+                style={{ backgroundColor: dragActive ? undefined : SWISSCOM_COLORS.CARD_BG }}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                <Input
+                  id="file-upload"
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label htmlFor="file-upload" className="cursor-pointer">
+                  <Upload className="h-12 w-12 mx-auto mb-4" style={{ color: dragActive ? SWISSCOM_COLORS.ACTION_BLUE : SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                  <p className="text-sm font-medium mb-1" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                    PDF, DOCX, TXT (up to 10MB per file)
+                  </p>
+                </label>
+              </div>
+
+              {/* Selected Files */}
+              {selectedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Selected Files ({selectedFiles.length})</Label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {selectedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between p-2 rounded" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <FileText className="h-4 w-4 flex-shrink-0" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>{file.name}</p>
+                            <p className="text-xs" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{formatFileSize(file.size)}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index)}
+                        >
+                          <X className="h-4 w-4" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Document Categories */}
+              <div className="space-y-2">
+                <Label>Document Categories</Label>
+                <div className="space-y-2">
+                  {DOCUMENT_CATEGORIES.map((category) => (
+                    <div key={category} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={category}
+                        checked={selectedCategories.includes(category)}
+                        onCheckedChange={() => toggleCategory(category)}
+                      />
+                      <label
+                        htmlFor={category}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        style={{ color: SWISSCOM_COLORS.BODY_TEXT }}
+                      >
+                        {category}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Upload Progress */}
+              {uploading && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Uploading documents to knowledge base...
+                  </div>
+                  <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+                    <div
+                      className="h-full transition-all duration-300"
+                      style={{
+                        width: `${uploadProgress}%`,
+                        background: `linear-gradient(to right, ${SWISSCOM_COLORS.GRADIENT_START}, ${SWISSCOM_COLORS.GRADIENT_MID}, ${SWISSCOM_COLORS.GRADIENT_END})`
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Upload Button */}
+              <Button
+                onClick={handleUpload}
+                disabled={uploading || selectedFiles.length === 0 || selectedCategories.length === 0}
+                className="w-full hover:opacity-90"
+                style={{ backgroundColor: SWISSCOM_COLORS.ACTION_BLUE }}
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload Documents
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Uploaded Documents List */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Uploaded Documents</CardTitle>
+              <CardDescription>{documents.length} documents in knowledge base</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {documents.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-16 w-16 mx-auto mb-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                  <p className="text-lg font-medium" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>No documents uploaded</p>
+                  <p className="text-sm mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Upload policy documents to get started</p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[600px] pr-4">
+                  <div className="space-y-3">
+                    {documents.map((doc) => (
+                      <Card key={doc.id} style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-start gap-3 flex-1 min-w-0">
+                              <FileText className="h-5 w-5 mt-0.5 flex-shrink-0" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{doc.filename}</p>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  <Badge variant="outline" className="text-xs">
+                                    {formatFileSize(doc.file_size)}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {formatDate(doc.upload_date)}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs mt-2" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
+                                  {doc.category}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(doc.id)}
+                            >
+                              <Trash2 className="h-4 w-4" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // =============================================================================
 // Main Component
 // =============================================================================
@@ -1311,6 +1729,8 @@ export default function Home() {
             onViewExpense={handleViewExpense}
           />
         )
+      case 'business-rules':
+        return <BusinessRulesView />
       default:
         return (
           <DashboardView
