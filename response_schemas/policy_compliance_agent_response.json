@@ -1,0 +1,122 @@
+{
+  "agent_name": "Policy Compliance Agent",
+  "agent_id": "696d5488c3a33af8ef060e60",
+  "agent_purpose": "assistant",
+  "description": "Checks expense submissions against company policies including spending limits, documentation requirements, and submission deadlines",
+  "response_schema": {
+    "status": "string",
+    "result": {
+      "is_compliant": "boolean",
+      "policy_violations": [
+        {
+          "policy_name": "string",
+          "violation_type": "string",
+          "severity": "string",
+          "description": "string"
+        }
+      ],
+      "spending_limit_check": {
+        "category": "string",
+        "amount": "number",
+        "limit": "number",
+        "within_limit": "boolean"
+      },
+      "documentation_check": {
+        "required_documents": [
+          "string"
+        ],
+        "provided_documents": [
+          "string"
+        ],
+        "missing_documents": [
+          "string"
+        ],
+        "is_complete": "boolean"
+      },
+      "recommendation": "string"
+    },
+    "metadata": {
+      "agent_name": "string",
+      "timestamp": "string"
+    }
+  },
+  "example_response": {
+    "status": "success",
+    "result": {
+      "is_compliant": false,
+      "policy_violations": [
+        {
+          "policy_name": "Travel Spending Limit Policy",
+          "violation_type": "Spending Limit Exceeded",
+          "severity": "high",
+          "description": "The claimed travel expense exceeds the permitted category spending limit."
+        }
+      ],
+      "spending_limit_check": {
+        "category": "travel",
+        "amount": 1200.0,
+        "limit": 1000.0,
+        "within_limit": false
+      },
+      "documentation_check": {
+        "required_documents": [
+          "itemized receipt",
+          "travel approval form"
+        ],
+        "provided_documents": [
+          "itemized receipt"
+        ],
+        "missing_documents": [
+          "travel approval form"
+        ],
+        "is_complete": false
+      },
+      "recommendation": "reject"
+    },
+    "metadata": {
+      "agent_name": "Policy Compliance Agent",
+      "timestamp": "2024-06-14T10:18:30Z"
+    }
+  },
+  "is_actual_tested": true,
+  "test_timestamp": "2026-01-18T21:50:43.986497",
+  "test_message_used": "Hello, provide a sample response",
+  "actual_test_response": {
+    "status": "success",
+    "result": {
+      "is_compliant": false,
+      "policy_violations": [
+        {
+          "policy_name": "Travel Spending Limit Policy",
+          "violation_type": "Spending Limit Exceeded",
+          "severity": "high",
+          "description": "The claimed travel expense exceeds the permitted category spending limit."
+        }
+      ],
+      "spending_limit_check": {
+        "category": "travel",
+        "amount": 1200.0,
+        "limit": 1000.0,
+        "within_limit": false
+      },
+      "documentation_check": {
+        "required_documents": [
+          "itemized receipt",
+          "travel approval form"
+        ],
+        "provided_documents": [
+          "itemized receipt"
+        ],
+        "missing_documents": [
+          "travel approval form"
+        ],
+        "is_complete": false
+      },
+      "recommendation": "reject"
+    },
+    "metadata": {
+      "agent_name": "Policy Compliance Agent",
+      "timestamp": "2024-06-14T10:18:30Z"
+    }
+  }
+}

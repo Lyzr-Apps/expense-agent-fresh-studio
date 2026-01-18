@@ -1,0 +1,68 @@
+{
+  "agent_name": "Receipt Authenticator Agent",
+  "agent_id": "696d5472c3a33af8ef060e5c",
+  "agent_purpose": "assistant",
+  "description": "Validates receipt authenticity by analyzing image metadata, detecting fraud indicators, and checking for duplicates",
+  "response_schema": {
+    "status": "string",
+    "result": {
+      "authenticity_score": "number",
+      "is_authentic": "boolean",
+      "fraud_indicators": [
+        "any"
+      ],
+      "duplicate_detected": "boolean",
+      "metadata_analysis": {
+        "receipt_date": "string",
+        "file_creation_date": "string",
+        "discrepancy": "boolean"
+      },
+      "recommendation": "string"
+    },
+    "metadata": {
+      "agent_name": "string",
+      "timestamp": "string"
+    }
+  },
+  "example_response": {
+    "status": "success",
+    "result": {
+      "authenticity_score": 0.92,
+      "is_authentic": true,
+      "fraud_indicators": [],
+      "duplicate_detected": false,
+      "metadata_analysis": {
+        "receipt_date": "2024-06-14",
+        "file_creation_date": "2024-06-14",
+        "discrepancy": false
+      },
+      "recommendation": "approve"
+    },
+    "metadata": {
+      "agent_name": "Receipt Authenticator Agent",
+      "timestamp": "2024-06-14T12:00:00Z"
+    }
+  },
+  "is_actual_tested": true,
+  "test_timestamp": "2026-01-18T21:50:41.755726",
+  "test_message_used": "Hello, provide a sample response",
+  "actual_test_response": {
+    "status": "success",
+    "result": {
+      "authenticity_score": 0.92,
+      "is_authentic": true,
+      "fraud_indicators": [],
+      "duplicate_detected": false,
+      "metadata_analysis": {
+        "receipt_date": "2024-06-14",
+        "file_creation_date": "2024-06-14",
+        "discrepancy": false
+      },
+      "recommendation": "approve"
+    },
+    "metadata": {
+      "agent_name": "Receipt Authenticator Agent",
+      "timestamp": "2024-06-14T12:00:00Z"
+    }
+  }
+}

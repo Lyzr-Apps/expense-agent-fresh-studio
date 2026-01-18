@@ -1,0 +1,29 @@
+{
+  "agent_name": "Receipt Authenticator Agent",
+  "agent_id": "696d5472c3a33af8ef060e5c",
+  "test_message": "Analyze receipt image: Digital receipt from Restaurant ABC dated 2026-01-15, total $85.50. Image metadata shows creation date matching receipt date. Font consistency appears normal. No obvious signs of manipulation detected in preliminary review.",
+  "expected_purpose": "assistant",
+  "timestamp": "2026-01-18T21:49:49.756632",
+  "is_valid_json": true,
+  "validation_errors": [],
+  "actual_response": {
+    "status": "success",
+    "result": {
+      "authenticity_score": 0.97,
+      "is_authentic": true,
+      "fraud_indicators": [],
+      "duplicate_detected": false,
+      "metadata_analysis": {
+        "receipt_date": "2026-01-15",
+        "file_creation_date": "2026-01-15",
+        "discrepancy": false
+      },
+      "recommendation": "approve"
+    },
+    "metadata": {
+      "agent_name": "Receipt Authenticator Agent",
+      "timestamp": "2024-06-13T10:09:57Z"
+    }
+  },
+  "raw_response": "{\n  \"status\": \"success\",\n  \"result\": {\n    \"authenticity_score\": 0.97,\n    \"is_authentic\": true,\n    \"fraud_indicators\": [],\n    \"duplicate_detected\": false,\n    \"metadata_analysis\": {\n      \"receipt_date\": \"2026-01-15\",\n      \"file_creation_date\": \"2026-01-15\",\n      \"discrepancy\": false\n    },\n    \"recommendation\": \"approve\"\n  },\n  \"metadata\": {\n    \"agent_name\": \"Receipt Authenticator Agent\",\n    \"timestamp\": \"2024-06-13T10:09:57Z\"\n  }\n}"
+}

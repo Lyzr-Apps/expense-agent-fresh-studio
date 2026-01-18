@@ -1,0 +1,53 @@
+{
+  "agent_name": "Policy Compliance Agent",
+  "agent_id": "696d5488c3a33af8ef060e60",
+  "test_message": "Validate expense: Category=Meals, Amount=$85.50, Date=2026-01-15, Employee=John Doe. Check against standard meal expense policies for spending limits, eligible expense types, and required documentation.",
+  "expected_purpose": "assistant",
+  "timestamp": "2026-01-18T21:49:52.534884",
+  "is_valid_json": true,
+  "validation_errors": [],
+  "actual_response": {
+    "status": "success",
+    "result": {
+      "is_compliant": false,
+      "policy_violations": [
+        {
+          "policy_name": "Meal Expense Spending Limit",
+          "violation_type": "exceeds_limit",
+          "severity": "medium",
+          "description": "The submitted meal expense amount of $85.50 exceeds the standard per-meal spending limit of $50.00."
+        },
+        {
+          "policy_name": "Submission Deadline",
+          "violation_type": "time_restriction",
+          "severity": "high",
+          "description": "The expense was submitted for a date in the future (2026-01-15), which is not allowed unless advanced approval and justification are provided."
+        }
+      ],
+      "spending_limit_check": {
+        "category": "Meals",
+        "amount": 85.5,
+        "limit": 50.0,
+        "within_limit": false
+      },
+      "documentation_check": {
+        "required_documents": [
+          "itemized receipt",
+          "business meal justification"
+        ],
+        "provided_documents": [],
+        "missing_documents": [
+          "itemized receipt",
+          "business meal justification"
+        ],
+        "is_complete": false
+      },
+      "recommendation": "reject"
+    },
+    "metadata": {
+      "agent_name": "Policy Compliance Agent",
+      "timestamp": "2024-06-29T15:21:00Z"
+    }
+  },
+  "raw_response": "{\n  \"status\": \"success\",\n  \"result\": {\n    \"is_compliant\": false,\n    \"policy_violations\": [\n      {\n        \"policy_name\": \"Meal Expense Spending Limit\",\n        \"violation_type\": \"exceeds_limit\",\n        \"severity\": \"medium\",\n        \"description\": \"The submitted meal expense amount of $85.50 exceeds the standard per-meal spending limit of $50.00.\"\n      },\n      {\n        \"policy_name\": \"Submission Deadline\",\n        \"violation_type\": \"time_restriction\",\n        \"severity\": \"high\",\n        \"description\": \"The expense was submitted for a date in the future (2026-01-15), which is not allowed unless advanced approval and justification are provided.\"\n      }\n    ],\n    \"spending_limit_check\": {\n      \"category\": \"Meals\",\n      \"amount\": 85.50,\n      \"limit\": 50.00,\n      \"within_limit\": false\n    },\n    \"documentation_check\": {\n      \"required_documents\": [\"itemized receipt\", \"business meal justification\"],\n      \"provided_documents\": [],\n      \"missing_documents\": [\"itemized receipt\", \"business meal justification\"],\n      \"is_complete\": false\n    },\n    \"recommendation\": \"reject\"\n  },\n  \"metadata\": {\n    \"agent_name\": \"Policy Compliance Agent\",\n    \"timestamp\": \"2024-06-29T15:21:00Z\"\n  }\n}"
+}

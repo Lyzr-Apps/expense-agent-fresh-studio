@@ -1,0 +1,46 @@
+{
+  "agent_name": "Business Rules Agent",
+  "agent_id": "696d549fc3a33af8ef060e61",
+  "test_message": "Validate employee eligibility: Employee ID EMP-12345, Location: Zurich office, Expense: Meals $85.50 on 2026-01-15. Check work location status, meal entitlements, department budget availability, and expense reasonableness.",
+  "expected_purpose": "assistant",
+  "timestamp": "2026-01-18T21:49:56.945070",
+  "is_valid_json": true,
+  "validation_errors": [],
+  "actual_response": {
+    "status": "success",
+    "result": {
+      "is_eligible": false,
+      "business_rule_violations": [
+        {
+          "rule_name": "Expense date is in the future",
+          "violation_type": "date violation",
+          "severity": "high",
+          "description": "The expense date is recorded as 2026-01-15, which is a future date and not currently valid for reimbursement."
+        }
+      ],
+      "location_check": {
+        "work_location": "Zurich office",
+        "expense_location": "Zurich office",
+        "is_reasonable": true,
+        "distance_km": 0.0
+      },
+      "authorization_check": {
+        "requires_authorization": false,
+        "is_authorized": true,
+        "authorization_details": "On-site meals at Zurich office do not require special travel authorization."
+      },
+      "budget_check": {
+        "department": "Unknown",
+        "budget_available": 0.0,
+        "expense_amount": 85.5,
+        "within_budget": false
+      },
+      "recommendation": "reject"
+    },
+    "metadata": {
+      "agent_name": "Business Rules Agent",
+      "timestamp": "2024-07-02T14:53:28Z"
+    }
+  },
+  "raw_response": "{\n  \"status\": \"success\",\n  \"result\": {\n    \"is_eligible\": false,\n    \"business_rule_violations\": [\n      {\n        \"rule_name\": \"Expense date is in the future\",\n        \"violation_type\": \"date violation\",\n        \"severity\": \"high\",\n        \"description\": \"The expense date is recorded as 2026-01-15, which is a future date and not currently valid for reimbursement.\"\n      }\n    ],\n    \"location_check\": {\n      \"work_location\": \"Zurich office\",\n      \"expense_location\": \"Zurich office\",\n      \"is_reasonable\": true,\n      \"distance_km\": 0.0\n    },\n    \"authorization_check\": {\n      \"requires_authorization\": false,\n      \"is_authorized\": true,\n      \"authorization_details\": \"On-site meals at Zurich office do not require special travel authorization.\"\n    },\n    \"budget_check\": {\n      \"department\": \"Unknown\",\n      \"budget_available\": 0.0,\n      \"expense_amount\": 85.50,\n      \"within_budget\": false\n    },\n    \"recommendation\": \"reject\"\n  },\n  \"metadata\": {\n    \"agent_name\": \"Business Rules Agent\",\n    \"timestamp\": \"2024-07-02T14:53:28Z\"\n  }\n}"
+}

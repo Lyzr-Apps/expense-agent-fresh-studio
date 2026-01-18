@@ -1,0 +1,123 @@
+{
+  "agent_name": "Expense Validation Manager",
+  "agent_id": "696d54bcc3a33af8ef060e65",
+  "agent_purpose": "manager",
+  "description": "Manager agent that orchestrates expense validation by coordinating receipt authentication, policy compliance, and business rules checking",
+  "response_schema": {
+    "status": "string",
+    "result": {
+      "final_decision": "string",
+      "validation_summary": {
+        "receipt_authentication": {
+          "passed": "boolean",
+          "score": "number",
+          "issues": [
+            "string"
+          ]
+        },
+        "policy_compliance": {
+          "passed": "boolean",
+          "violations": [
+            "string"
+          ]
+        },
+        "business_rules": {
+          "passed": "boolean",
+          "violations": [
+            "string"
+          ]
+        }
+      },
+      "escalation_reasons": [
+        "any"
+      ],
+      "aggregated_recommendation": "string",
+      "next_steps": [
+        "string"
+      ]
+    },
+    "metadata": {
+      "agent_name": "string",
+      "timestamp": "string"
+    }
+  },
+  "example_response": {
+    "status": "success",
+    "result": {
+      "final_decision": "rejected",
+      "validation_summary": {
+        "receipt_authentication": {
+          "passed": false,
+          "score": 0.0,
+          "issues": [
+            "No receipt image submitted for analysis."
+          ]
+        },
+        "policy_compliance": {
+          "passed": false,
+          "violations": [
+            "No expense details provided for validation. Required information such as category, amount, documentation, and expense type is missing."
+          ]
+        },
+        "business_rules": {
+          "passed": false,
+          "violations": [
+            "No expense details or employee information provided. Unable to perform eligibility and context checks."
+          ]
+        }
+      },
+      "escalation_reasons": [],
+      "aggregated_recommendation": "Rejected due to missing receipt, insufficient expense details, and no employee information. All validation checks failed.",
+      "next_steps": [
+        "Request the user to submit a valid receipt image.",
+        "Obtain complete expense information including category, amount, documentation, and employee details.",
+        "Resubmit the expense for validation."
+      ]
+    },
+    "metadata": {
+      "agent_name": "Expense Validation Manager",
+      "timestamp": "2024-06-13T08:46:21Z"
+    }
+  },
+  "is_actual_tested": true,
+  "test_timestamp": "2026-01-18T21:50:39.806643",
+  "test_message_used": "Process this request and coordinate sub-agents",
+  "actual_test_response": {
+    "status": "success",
+    "result": {
+      "final_decision": "rejected",
+      "validation_summary": {
+        "receipt_authentication": {
+          "passed": false,
+          "score": 0.0,
+          "issues": [
+            "No receipt image submitted for analysis."
+          ]
+        },
+        "policy_compliance": {
+          "passed": false,
+          "violations": [
+            "No expense details provided for validation. Required information such as category, amount, documentation, and expense type is missing."
+          ]
+        },
+        "business_rules": {
+          "passed": false,
+          "violations": [
+            "No expense details or employee information provided. Unable to perform eligibility and context checks."
+          ]
+        }
+      },
+      "escalation_reasons": [],
+      "aggregated_recommendation": "Rejected due to missing receipt, insufficient expense details, and no employee information. All validation checks failed.",
+      "next_steps": [
+        "Request the user to submit a valid receipt image.",
+        "Obtain complete expense information including category, amount, documentation, and employee details.",
+        "Resubmit the expense for validation."
+      ]
+    },
+    "metadata": {
+      "agent_name": "Expense Validation Manager",
+      "timestamp": "2024-06-13T08:46:21Z"
+    }
+  }
+}

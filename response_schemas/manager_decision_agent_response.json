@@ -1,0 +1,95 @@
+{
+  "agent_name": "Manager Decision Agent",
+  "agent_id": "696d54e8e1e4c42b224aff77",
+  "agent_purpose": "assistant",
+  "description": "Processes manager approval/rejection decisions and sends notifications to employees with audit trail tracking",
+  "response_schema": {
+    "status": "string",
+    "result": {
+      "decision": "string",
+      "expense_id": "string",
+      "manager_notes": "string",
+      "decision_timestamp": "string",
+      "employee_notified": "boolean",
+      "notification_details": {
+        "email_sent": "boolean",
+        "recipient": "string",
+        "subject": "string"
+      },
+      "audit_trail": {
+        "decision_by": "string",
+        "previous_status": "string",
+        "new_status": "string",
+        "recorded_at": "string"
+      },
+      "next_steps": [
+        "string"
+      ]
+    },
+    "metadata": {
+      "agent_name": "string",
+      "timestamp": "string"
+    }
+  },
+  "example_response": {
+    "status": "success",
+    "result": {
+      "decision": "approved",
+      "expense_id": "EXP123456",
+      "manager_notes": "Approved as the expense is within policy and justification provided is sufficient.",
+      "decision_timestamp": "2024-07-05T10:15:00Z",
+      "employee_notified": true,
+      "notification_details": {
+        "email_sent": true,
+        "recipient": "employee@example.com",
+        "subject": "Your escalated expense EXP123456 has been approved"
+      },
+      "audit_trail": {
+        "decision_by": "manager.name@example.com",
+        "previous_status": "pending_manager_review",
+        "new_status": "approved",
+        "recorded_at": "2024-07-05T10:15:00Z"
+      },
+      "next_steps": [
+        "Reimbursement will be processed within 5 business days.",
+        "No further action needed from employee."
+      ]
+    },
+    "metadata": {
+      "agent_name": "Manager Decision Agent",
+      "timestamp": "2024-07-05T10:15:01Z"
+    }
+  },
+  "is_actual_tested": true,
+  "test_timestamp": "2026-01-18T21:50:51.832772",
+  "test_message_used": "Hello, provide a sample response",
+  "actual_test_response": {
+    "status": "success",
+    "result": {
+      "decision": "approved",
+      "expense_id": "EXP123456",
+      "manager_notes": "Approved as the expense is within policy and justification provided is sufficient.",
+      "decision_timestamp": "2024-07-05T10:15:00Z",
+      "employee_notified": true,
+      "notification_details": {
+        "email_sent": true,
+        "recipient": "employee@example.com",
+        "subject": "Your escalated expense EXP123456 has been approved"
+      },
+      "audit_trail": {
+        "decision_by": "manager.name@example.com",
+        "previous_status": "pending_manager_review",
+        "new_status": "approved",
+        "recorded_at": "2024-07-05T10:15:00Z"
+      },
+      "next_steps": [
+        "Reimbursement will be processed within 5 business days.",
+        "No further action needed from employee."
+      ]
+    },
+    "metadata": {
+      "agent_name": "Manager Decision Agent",
+      "timestamp": "2024-07-05T10:15:01Z"
+    }
+  }
+}

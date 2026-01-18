@@ -1,0 +1,174 @@
+{
+  "workflow_name": "Expense Management Automation Platform",
+  "workflow_description": "Complete expense validation workflow with receipt authentication, policy compliance, and business rules validation",
+  "nodes": [
+    {
+      "id": "input_node",
+      "type": "Input",
+      "label": "Expense Submission",
+      "nodeCategory": "input",
+      "position": {"x": 100, "y": 200}
+    },
+    {
+      "id": "expense_validation_manager",
+      "type": "Agent",
+      "label": "Expense Validation Manager",
+      "nodeCategory": "agent",
+      "agent_id": "696d54bcc3a33af8ef060e65",
+      "agent_type": "manager",
+      "position": {"x": 400, "y": 200}
+    },
+    {
+      "id": "receipt_authenticator",
+      "type": "Agent",
+      "label": "Receipt Authenticator Agent",
+      "nodeCategory": "agent",
+      "agent_id": "696d5472c3a33af8ef060e5c",
+      "agent_type": "sub-agent",
+      "position": {"x": 700, "y": 100}
+    },
+    {
+      "id": "policy_compliance",
+      "type": "Agent",
+      "label": "Policy Compliance Agent",
+      "nodeCategory": "agent",
+      "agent_id": "696d5488c3a33af8ef060e60",
+      "agent_type": "sub-agent",
+      "position": {"x": 700, "y": 200}
+    },
+    {
+      "id": "business_rules",
+      "type": "Agent",
+      "label": "Business Rules Agent",
+      "nodeCategory": "agent",
+      "agent_id": "696d549fc3a33af8ef060e61",
+      "agent_type": "sub-agent",
+      "position": {"x": 700, "y": 300}
+    },
+    {
+      "id": "manager_decision",
+      "type": "Agent",
+      "label": "Manager Decision Agent",
+      "nodeCategory": "agent",
+      "agent_id": "696d54e8e1e4c42b224aff77",
+      "agent_type": "independent",
+      "position": {"x": 400, "y": 400}
+    },
+    {
+      "id": "output_node",
+      "type": "Output",
+      "label": "Validation Result",
+      "nodeCategory": "end",
+      "position": {"x": 1000, "y": 300}
+    }
+  ],
+  "edges": [
+    {
+      "source": "input_node",
+      "target": "expense_validation_manager",
+      "label": "Submit Expense"
+    },
+    {
+      "source": "expense_validation_manager",
+      "target": "receipt_authenticator",
+      "label": "Authenticate Receipt"
+    },
+    {
+      "source": "expense_validation_manager",
+      "target": "policy_compliance",
+      "label": "Check Policy"
+    },
+    {
+      "source": "expense_validation_manager",
+      "target": "business_rules",
+      "label": "Validate Rules"
+    },
+    {
+      "source": "input_node",
+      "target": "manager_decision",
+      "label": "Manager Review"
+    },
+    {
+      "source": "expense_validation_manager",
+      "target": "output_node",
+      "label": "Validation Complete"
+    },
+    {
+      "source": "manager_decision",
+      "target": "output_node",
+      "label": "Decision Processed"
+    }
+  ],
+  "agents": [
+    {
+      "agent_id": "696d5472c3a33af8ef060e5c",
+      "name": "Receipt Authenticator Agent",
+      "type": "sub-agent",
+      "description": "Analyzes uploaded receipt images for signs of falsification including digital manipulation, inconsistent fonts, altered amounts, duplicate submissions, and metadata anomalies. Returns authenticity score and detected issues",
+      "provider": "OpenAI",
+      "model": "gpt-4.1",
+      "temperature": 0.1,
+      "top_p": 1,
+      "response_schema": "response_schemas/receipt_authenticator_agent_response.json"
+    },
+    {
+      "agent_id": "696d5488c3a33af8ef060e60",
+      "name": "Policy Compliance Agent",
+      "type": "sub-agent",
+      "description": "Validates expense against internal regulations and policies based on expense category (travel, meals, supplies, etc.). Checks spending limits, eligible expense types, required documentation, and category-specific rules",
+      "provider": "OpenAI",
+      "model": "gpt-4.1",
+      "temperature": 0.2,
+      "top_p": 1,
+      "response_schema": "response_schemas/policy_compliance_agent_response.json",
+      "notes": "Knowledge base integration available for policy documents"
+    },
+    {
+      "agent_id": "696d549fc3a33af8ef060e61",
+      "name": "Business Rules Agent",
+      "type": "sub-agent",
+      "description": "Validates employee eligibility and expense context by checking work location, staff restaurant access, travel authorization status, department budgets, and time/location reasonableness of the expense",
+      "provider": "OpenAI",
+      "model": "gpt-4.1",
+      "temperature": 0.2,
+      "top_p": 1,
+      "response_schema": "response_schemas/business_rules_agent_response.json"
+    },
+    {
+      "agent_id": "696d54bcc3a33af8ef060e65",
+      "name": "Expense Validation Manager",
+      "type": "manager",
+      "description": "Orchestrates the complete expense validation workflow by coordinating receipt authentication, policy compliance checking, and business rules validation. Aggregates results from all sub-agents to determine final outcome: Auto-Approved, Rejected, or Escalate to Manager. Applies escalation logic for compliance red flags, fraud indicators, or multi-category expenses",
+      "provider": "OpenAI",
+      "model": "gpt-4.1",
+      "temperature": 0.2,
+      "top_p": 1,
+      "managed_agents": [
+        "696d5472c3a33af8ef060e5c",
+        "696d5488c3a33af8ef060e60",
+        "696d549fc3a33af8ef060e61"
+      ],
+      "response_schema": "response_schemas/expense_validation_manager_response.json"
+    },
+    {
+      "agent_id": "696d54e8e1e4c42b224aff77",
+      "name": "Manager Decision Agent",
+      "type": "independent",
+      "description": "Processes manager's approval or rejection decision for escalated expenses. Updates expense status, records decision rationale, notifies employee of outcome, and ensures complete audit trail is maintained",
+      "provider": "OpenAI",
+      "model": "gpt-4.1",
+      "temperature": 0.2,
+      "top_p": 1,
+      "tools": ["gmail"],
+      "response_schema": "response_schemas/manager_decision_agent_response.json"
+    }
+  ],
+  "metadata": {
+    "total_agents": 5,
+    "manager_agents": 1,
+    "sub_agents": 3,
+    "independent_agents": 1,
+    "created_at": "2026-01-18T00:00:00Z",
+    "platform": "Lyzr Agent Studio"
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "agent_name": "Business Rules Agent",
+  "agent_id": "696d549fc3a33af8ef060e61",
+  "agent_purpose": "assistant",
+  "description": "Validates employee eligibility and business rules including location checks, authorization requirements, and budget availability",
+  "response_schema": {
+    "status": "string",
+    "result": {
+      "is_eligible": "boolean",
+      "business_rule_violations": [
+        {
+          "rule_name": "string",
+          "violation_type": "string",
+          "severity": "string",
+          "description": "string"
+        }
+      ],
+      "location_check": {
+        "work_location": "string",
+        "expense_location": "string",
+        "is_reasonable": "boolean",
+        "distance_km": "number"
+      },
+      "authorization_check": {
+        "requires_authorization": "boolean",
+        "is_authorized": "boolean",
+        "authorization_details": "string"
+      },
+      "budget_check": {
+        "department": "string",
+        "budget_available": "number",
+        "expense_amount": "number",
+        "within_budget": "boolean"
+      },
+      "recommendation": "string"
+    },
+    "metadata": {
+      "agent_name": "string",
+      "timestamp": "string"
+    }
+  },
+  "example_response": {
+    "status": "success",
+    "result": {
+      "is_eligible": false,
+      "business_rule_violations": [
+        {
+          "rule_name": "Geo-location Anomaly",
+          "violation_type": "location_mismatch",
+          "severity": "high",
+          "description": "Expense location is in a different city from the registered work location without valid travel authorization."
+        },
+        {
+          "rule_name": "Travel Authorization",
+          "violation_type": "missing_authorization",
+          "severity": "high",
+          "description": "Travel expenses incurred, but no pre-approval found in the system."
+        }
+      ],
+      "location_check": {
+        "work_location": "London, UK",
+        "expense_location": "Paris, France",
+        "is_reasonable": false,
+        "distance_km": 344.0
+      },
+      "authorization_check": {
+        "requires_authorization": true,
+        "is_authorized": false,
+        "authorization_details": "No travel request or approval on record for specified dates/locations."
+      },
+      "budget_check": {
+        "department": "Sales",
+        "budget_available": 5000.0,
+        "expense_amount": 1200.0,
+        "within_budget": true
+      },
+      "recommendation": "reject"
+    },
+    "metadata": {
+      "agent_name": "Business Rules Agent",
+      "timestamp": "2024-06-08T10:30:00Z"
+    }
+  },
+  "is_actual_tested": true,
+  "test_timestamp": "2026-01-18T21:50:47.365882",
+  "test_message_used": "Hello, provide a sample response",
+  "actual_test_response": {
+    "status": "success",
+    "result": {
+      "is_eligible": false,
+      "business_rule_violations": [
+        {
+          "rule_name": "Geo-location Anomaly",
+          "violation_type": "location_mismatch",
+          "severity": "high",
+          "description": "Expense location is in a different city from the registered work location without valid travel authorization."
+        },
+        {
+          "rule_name": "Travel Authorization",
+          "violation_type": "missing_authorization",
+          "severity": "high",
+          "description": "Travel expenses incurred, but no pre-approval found in the system."
+        }
+      ],
+      "location_check": {
+        "work_location": "London, UK",
+        "expense_location": "Paris, France",
+        "is_reasonable": false,
+        "distance_km": 344.0
+      },
+      "authorization_check": {
+        "requires_authorization": true,
+        "is_authorized": false,
+        "authorization_details": "No travel request or approval on record for specified dates/locations."
+      },
+      "budget_check": {
+        "department": "Sales",
+        "budget_available": 5000.0,
+        "expense_amount": 1200.0,
+        "within_budget": true
+      },
+      "recommendation": "reject"
+    },
+    "metadata": {
+      "agent_name": "Business Rules Agent",
+      "timestamp": "2024-06-08T10:30:00Z"
+    }
+  }
+}

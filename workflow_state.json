@@ -1,0 +1,51 @@
+{
+  "workflow_created": true,
+  "agents": [
+    {
+      "name": "Receipt Authenticator Agent",
+      "agent_id": "696d5472c3a33af8ef060e5c",
+      "type": "sub-agent",
+      "status": "created",
+      "response_schema": "response_schemas/receipt_authenticator_agent_response.json"
+    },
+    {
+      "name": "Policy Compliance Agent",
+      "agent_id": "696d5488c3a33af8ef060e60",
+      "type": "sub-agent",
+      "status": "created",
+      "response_schema": "response_schemas/policy_compliance_agent_response.json"
+    },
+    {
+      "name": "Business Rules Agent",
+      "agent_id": "696d549fc3a33af8ef060e61",
+      "type": "sub-agent",
+      "status": "created",
+      "response_schema": "response_schemas/business_rules_agent_response.json"
+    },
+    {
+      "name": "Expense Validation Manager",
+      "agent_id": "696d54bcc3a33af8ef060e65",
+      "type": "manager",
+      "status": "created",
+      "managed_agents": [
+        "696d5472c3a33af8ef060e5c",
+        "696d5488c3a33af8ef060e60",
+        "696d549fc3a33af8ef060e61"
+      ],
+      "response_schema": "response_schemas/expense_validation_manager_response.json"
+    },
+    {
+      "name": "Manager Decision Agent",
+      "agent_id": "696d54e8e1e4c42b224aff77",
+      "type": "independent",
+      "status": "created",
+      "tools": ["gmail"],
+      "response_schema": "response_schemas/manager_decision_agent_response.json"
+    }
+  ],
+  "total_agents": 5,
+  "manager_agents": 1,
+  "sub_agents": 3,
+  "independent_agents": 1,
+  "creation_timestamp": "2026-01-18T00:00:00Z"
+}
