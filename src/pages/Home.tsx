@@ -40,6 +40,32 @@ import {
 import { callAIAgent, uploadFiles, type NormalizedAgentResponse } from '@/utils/aiAgent'
 
 // =============================================================================
+// SWISSCOM DESIGN SYSTEM - EXACT HEX COLORS
+// =============================================================================
+const SWISSCOM_COLORS = {
+  // Core Brand Colors
+  CORPORATE_BLUE: '#001155',    // Logo, Footer, Sidebar
+  ACTION_BLUE: '#0541FF',       // Primary Buttons
+  SWISSCOM_RED: '#F20505',      // Sale/Alerts
+
+  // Typography & UI
+  PRIMARY_HEADING: '#1A1A1A',   // Primary Headings
+  BODY_TEXT: '#040D33',         // Navigation & Body Text
+  SECONDARY_TEXT: '#767676',    // Secondary/Muted Text
+  PAGE_BG: '#FFFFFF',           // Main Page Background
+  CARD_BG: '#F4F4F4',           // Product Cards/Sections
+
+  // Icon & Accent Gradient (Multi-stop)
+  GRADIENT_START: '#F20505',    // Red
+  GRADIENT_MID: '#9428FF',      // Purple
+  GRADIENT_END: '#0541FF',      // Blue
+
+  // Special Badges
+  BADGE_BG: '#001155',          // Online Exclusive/Special
+  BADGE_TEXT: '#FFFFFF'         // Badge text
+}
+
+// =============================================================================
 // TypeScript Interfaces from ACTUAL Test Response Schemas
 // =============================================================================
 
@@ -194,51 +220,6 @@ const AGENT_IDS = {
 }
 
 // =============================================================================
-// Mock Data
-// =============================================================================
-
-const INITIAL_EXPENSES: Expense[] = [
-  {
-    id: 'EXP-2026-001',
-    employee_name: 'John Doe',
-    employee_id: 'EMP-12345',
-    category: 'Meals',
-    amount: 85.50,
-    date: '2026-01-15',
-    merchant: 'Restaurant ABC',
-    description: 'Client dinner meeting',
-    status: 'escalated',
-    submitted_at: '2026-01-16T10:30:00Z',
-    days_pending: 2
-  },
-  {
-    id: 'EXP-2026-002',
-    employee_name: 'Jane Smith',
-    employee_id: 'EMP-67890',
-    category: 'Travel',
-    amount: 450.00,
-    date: '2026-01-12',
-    merchant: 'Swiss Rail',
-    description: 'Travel to Bern office',
-    status: 'approved',
-    submitted_at: '2026-01-13T09:15:00Z'
-  },
-  {
-    id: 'EXP-2026-003',
-    employee_name: 'Mike Johnson',
-    employee_id: 'EMP-11111',
-    category: 'Office Supplies',
-    amount: 125.00,
-    date: '2026-01-14',
-    merchant: 'Office Depot',
-    description: 'Team supplies',
-    status: 'pending',
-    submitted_at: '2026-01-15T14:20:00Z',
-    days_pending: 3
-  }
-]
-
-// =============================================================================
 // Utility Functions
 // =============================================================================
 
@@ -264,10 +245,10 @@ function formatDate(dateString: string): string {
 function StatusBadge({ status }: { status: Expense['status'] }) {
   const variants = {
     approved: 'bg-green-100 text-green-800 border-green-200',
-    rejected: 'bg-[#F20505] text-white border-[#F20505]',
-    escalated: 'bg-gradient-to-r from-[#0541FF] to-[#9428FF] text-white',
-    pending: 'bg-amber-100 text-amber-800 border-amber-200',
-    processing: 'bg-gradient-to-r from-[#0541FF] to-[#9428FF] text-white'
+    rejected: `bg-[${SWISSCOM_COLORS.SWISSCOM_RED}] text-white border-[${SWISSCOM_COLORS.SWISSCOM_RED}]`,
+    escalated: `bg-gradient-to-r from-[${SWISSCOM_COLORS.GRADIENT_START}] via-[${SWISSCOM_COLORS.GRADIENT_MID}] to-[${SWISSCOM_COLORS.GRADIENT_END}] text-white`,
+    pending: `bg-[${SWISSCOM_COLORS.ACTION_BLUE}]/10 text-[${SWISSCOM_COLORS.ACTION_BLUE}] border-[${SWISSCOM_COLORS.ACTION_BLUE}]`,
+    processing: `bg-gradient-to-r from-[${SWISSCOM_COLORS.GRADIENT_START}] via-[${SWISSCOM_COLORS.GRADIENT_MID}] to-[${SWISSCOM_COLORS.GRADIENT_END}] text-white`
   }
 
   const labels = {
@@ -304,7 +285,7 @@ function Sidebar({ currentView, onViewChange, userRole }: {
   const items = userRole === 'manager' ? managerItems : employeeItems
 
   return (
-    <div className="w-64 h-screen bg-[#001155] text-white flex flex-col">
+    <div className="w-64 h-screen text-white flex flex-col" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
       <div className="p-6">
         <div className="flex items-center gap-2 mb-8">
           <Receipt className="h-8 w-8" />
@@ -371,24 +352,24 @@ function DashboardView({ expenses, onViewExpense, userRole }: {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-[#1A1A1A]">Dashboard</h1>
-        <p className="text-[#666666]">Overview of expense submissions</p>
+        <h1 className="text-3xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Dashboard</h1>
+        <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Overview of expense submissions</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-[#F4F4F4]">
+        <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-[#666666]">Total Expenses</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Total Expenses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#1A1A1A]">{stats.total}</div>
-            <p className="text-xs text-[#666666] mt-1">{formatCurrency(totalAmount)}</p>
+            <div className="text-2xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{stats.total}</div>
+            <p className="text-xs mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{formatCurrency(totalAmount)}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-[#F4F4F4]">
+        <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-[#666666]">Approved</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Approved</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
@@ -398,9 +379,9 @@ function DashboardView({ expenses, onViewExpense, userRole }: {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#F4F4F4]">
+        <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-[#666666]">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Pending</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
@@ -410,21 +391,21 @@ function DashboardView({ expenses, onViewExpense, userRole }: {
           </CardContent>
         </Card>
 
-        <Card className="bg-[#F4F4F4]">
+        <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-[#666666]">
+            <CardTitle className="text-sm font-medium" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
               {userRole === 'manager' ? 'Escalated' : 'Rejected'}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-bold text-[#F20505]">
+              <div className="text-2xl font-bold" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>
                 {userRole === 'manager' ? stats.escalated : stats.rejected}
               </div>
               {userRole === 'manager' ? (
-                <AlertTriangle className="h-5 w-5 text-[#F20505]" />
+                <AlertTriangle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
               ) : (
-                <XCircle className="h-5 w-5 text-[#F20505]" />
+                <XCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
               )}
             </div>
           </CardContent>
@@ -433,46 +414,54 @@ function DashboardView({ expenses, onViewExpense, userRole }: {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-[#1A1A1A]">Recent Expenses</CardTitle>
+          <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Recent Expenses</CardTitle>
           <CardDescription>Latest expense submissions</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Employee</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {expenses.slice(0, 5).map((expense) => (
-                <TableRow key={expense.id} className="hover:bg-[#F4F4F4]">
-                  <TableCell className="font-medium">{expense.id}</TableCell>
-                  <TableCell>{expense.employee_name}</TableCell>
-                  <TableCell>{expense.category}</TableCell>
-                  <TableCell>{formatCurrency(expense.amount)}</TableCell>
-                  <TableCell>{formatDate(expense.date)}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={expense.status} />
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onViewExpense(expense)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          {expenses.length === 0 ? (
+            <div className="text-center py-12">
+              <Receipt className="h-16 w-16 mx-auto mb-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+              <p className="text-lg font-medium" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>No expenses yet</p>
+              <p className="text-sm mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Submit your first expense to get started</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {expenses.slice(0, 5).map((expense) => (
+                  <TableRow key={expense.id} style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }} className="hover:bg-[#F4F4F4]">
+                    <TableCell className="font-medium">{expense.id}</TableCell>
+                    <TableCell>{expense.employee_name}</TableCell>
+                    <TableCell>{expense.category}</TableCell>
+                    <TableCell>{formatCurrency(expense.amount)}</TableCell>
+                    <TableCell>{formatDate(expense.date)}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={expense.status} />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onViewExpense(expense)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -582,13 +571,13 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-[#1A1A1A]">Submit Expense</h1>
-        <p className="text-[#666666]">Upload receipt and expense details</p>
+        <h1 className="text-3xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Submit Expense</h1>
+        <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Upload receipt and expense details</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-[#1A1A1A]">Expense Details</CardTitle>
+          <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Expense Details</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -603,11 +592,11 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
                   className="hidden"
                 />
                 <label htmlFor="receipt" className="cursor-pointer">
-                  <Upload className="h-12 w-12 mx-auto mb-4 text-[#666666]" />
-                  <p className="text-sm text-[#666666]">
+                  <Upload className="h-12 w-12 mx-auto mb-4" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }} />
+                  <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                     {file ? file.name : 'Click to upload or drag and drop'}
                   </p>
-                  <p className="text-xs text-[#666666] mt-1">JPG, PNG, PDF up to 10MB</p>
+                  <p className="text-xs mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>JPG, PNG, PDF up to 10MB</p>
                 </label>
               </div>
             </div>
@@ -680,35 +669,35 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
 
             {loading && (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm text-[#666666]">
+                <div className="flex items-center gap-2 text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Processing expense validation...
                 </div>
-                <Progress value={progress} className="h-2 bg-gradient-to-r from-[#0541FF] to-[#9428FF]" />
+                <Progress value={progress} className="h-2" style={{ background: `linear-gradient(to right, ${SWISSCOM_COLORS.GRADIENT_START}, ${SWISSCOM_COLORS.GRADIENT_MID}, ${SWISSCOM_COLORS.GRADIENT_END})` }} />
               </div>
             )}
 
             {error && (
               <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-[#F20505] mt-0.5" />
-                <p className="text-sm text-[#F20505]">{error}</p>
+                <AlertCircle className="h-5 w-5 mt-0.5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>{error}</p>
               </div>
             )}
 
             {result && (
-              <div className="p-4 bg-[#F4F4F4] rounded-lg space-y-3">
+              <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
                 <div className="flex items-center gap-2">
                   {result.status === 'success' ? (
                     <CheckCircle2 className="h-5 w-5 text-green-600" />
                   ) : (
-                    <AlertCircle className="h-5 w-5 text-[#F20505]" />
+                    <AlertCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
                   )}
-                  <p className="font-medium text-[#1A1A1A]">
+                  <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
                     {result.status === 'success' ? 'Validation Complete' : 'Validation Error'}
                   </p>
                 </div>
                 {result.result && (
-                  <div className="text-sm text-[#666666] space-y-1">
+                  <div className="text-sm space-y-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                     <p><strong>Decision:</strong> {(result.result as ExpenseValidationResult).final_decision}</p>
                     {(result.result as ExpenseValidationResult).aggregated_recommendation && (
                       <p className="mt-2">{(result.result as ExpenseValidationResult).aggregated_recommendation}</p>
@@ -720,7 +709,8 @@ function SubmitExpenseView({ onSubmitComplete }: { onSubmitComplete: (expense: E
 
             <Button
               type="submit"
-              className="w-full bg-[#0541FF] hover:bg-[#0541FF]/90"
+              className="w-full hover:opacity-90"
+              style={{ backgroundColor: SWISSCOM_COLORS.ACTION_BLUE }}
               disabled={loading || !category || !amount || !date || !merchant}
             >
               {loading ? (
@@ -764,10 +754,10 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold text-[#1A1A1A]">{expense.id}</h1>
+            <h1 className="text-3xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{expense.id}</h1>
             <StatusBadge status={expense.status} />
           </div>
-          <p className="text-[#666666]">{expense.employee_name} • {formatDate(expense.date)}</p>
+          <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{expense.employee_name} • {formatDate(expense.date)}</p>
         </div>
         <Button variant="outline" onClick={onBack}>
           Back
@@ -776,30 +766,30 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <Card className="bg-[#F4F4F4]">
+          <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">Expense Information</CardTitle>
+              <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Expense Information</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-[#666666]">Category</p>
-                <p className="font-medium text-[#1A1A1A]">{expense.category}</p>
+                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Category</p>
+                <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{expense.category}</p>
               </div>
               <div>
-                <p className="text-sm text-[#666666]">Amount</p>
-                <p className="font-medium text-[#1A1A1A]">{formatCurrency(expense.amount)}</p>
+                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Amount</p>
+                <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{formatCurrency(expense.amount)}</p>
               </div>
               <div>
-                <p className="text-sm text-[#666666]">Merchant</p>
-                <p className="font-medium text-[#1A1A1A]">{expense.merchant}</p>
+                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Merchant</p>
+                <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{expense.merchant}</p>
               </div>
               <div>
-                <p className="text-sm text-[#666666]">Date</p>
-                <p className="font-medium text-[#1A1A1A]">{formatDate(expense.date)}</p>
+                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Date</p>
+                <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{formatDate(expense.date)}</p>
               </div>
               <div className="col-span-2">
-                <p className="text-sm text-[#666666]">Description</p>
-                <p className="font-medium text-[#1A1A1A]">{expense.description || 'No description provided'}</p>
+                <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Description</p>
+                <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{expense.description || 'No description provided'}</p>
               </div>
             </CardContent>
           </Card>
@@ -807,17 +797,17 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
           {expense.validation_result && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-[#1A1A1A]">Validation Results</CardTitle>
+                <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Validation Results</CardTitle>
               </CardHeader>
               <CardContent>
                 <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="receipt" className="bg-[#F4F4F4] px-4 rounded-lg mb-2">
+                  <AccordionItem value="receipt" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }} className="px-4 rounded-lg mb-2">
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center gap-3">
                         {expense.validation_result.validation_summary.receipt_authentication.passed ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-[#F20505]" />
+                          <XCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
                         )}
                         <span className="font-medium">Receipt Authentication</span>
                         <Badge variant="outline" className="ml-2">
@@ -827,13 +817,13 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
                       <div className="space-y-2 text-sm">
-                        <p className="text-[#666666]">
+                        <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                           Status: {expense.validation_result.validation_summary.receipt_authentication.passed ? 'Passed' : 'Failed'}
                         </p>
                         {expense.validation_result.validation_summary.receipt_authentication.issues.length > 0 && (
                           <div>
-                            <p className="font-medium text-[#1A1A1A] mb-1">Issues:</p>
-                            <ul className="list-disc list-inside text-[#666666] space-y-1">
+                            <p className="font-medium mb-1" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Issues:</p>
+                            <ul className="list-disc list-inside space-y-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                               {expense.validation_result.validation_summary.receipt_authentication.issues.map((issue, i) => (
                                 <li key={i}>{issue}</li>
                               ))}
@@ -844,17 +834,17 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="policy" className="bg-[#F4F4F4] px-4 rounded-lg mb-2">
+                  <AccordionItem value="policy" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }} className="px-4 rounded-lg mb-2">
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center gap-3">
                         {expense.validation_result.validation_summary.policy_compliance.passed ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-[#F20505]" />
+                          <XCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
                         )}
                         <span className="font-medium">Policy Compliance</span>
                         {!expense.validation_result.validation_summary.policy_compliance.passed && (
-                          <Badge variant="outline" className="ml-2 text-[#F20505]">
+                          <Badge variant="outline" className="ml-2" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>
                             {expense.validation_result.validation_summary.policy_compliance.violations.length} violations
                           </Badge>
                         )}
@@ -867,13 +857,13 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                             <div key={i} className="p-3 bg-white rounded border border-red-200">
                               <div className="flex items-start gap-2">
                                 <Badge className={cn(
-                                  violation.severity === 'high' ? 'bg-[#F20505]' : 'bg-amber-500'
+                                  violation.severity === 'high' ? `bg-[${SWISSCOM_COLORS.SWISSCOM_RED}]` : 'bg-amber-500'
                                 )}>
                                   {violation.severity}
                                 </Badge>
                                 <div className="flex-1">
-                                  <p className="font-medium text-[#1A1A1A]">{violation.policy_name}</p>
-                                  <p className="text-sm text-[#666666] mt-1">{violation.description}</p>
+                                  <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{violation.policy_name}</p>
+                                  <p className="text-sm mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{violation.description}</p>
                                 </div>
                               </div>
                             </div>
@@ -885,17 +875,17 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     </AccordionContent>
                   </AccordionItem>
 
-                  <AccordionItem value="business" className="bg-[#F4F4F4] px-4 rounded-lg">
+                  <AccordionItem value="business" style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }} className="px-4 rounded-lg">
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center gap-3">
                         {expense.validation_result.validation_summary.business_rules.passed ? (
                           <CheckCircle className="h-5 w-5 text-green-600" />
                         ) : (
-                          <XCircle className="h-5 w-5 text-[#F20505]" />
+                          <XCircle className="h-5 w-5" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
                         )}
                         <span className="font-medium">Business Rules</span>
                         {!expense.validation_result.validation_summary.business_rules.passed && (
-                          <Badge variant="outline" className="ml-2 text-[#F20505]">
+                          <Badge variant="outline" className="ml-2" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }}>
                             {expense.validation_result.validation_summary.business_rules.violations.length} violations
                           </Badge>
                         )}
@@ -908,13 +898,13 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                             <div key={i} className="p-3 bg-white rounded border border-red-200">
                               <div className="flex items-start gap-2">
                                 <Badge className={cn(
-                                  violation.severity === 'high' ? 'bg-[#F20505]' : 'bg-amber-500'
+                                  violation.severity === 'high' ? `bg-[${SWISSCOM_COLORS.SWISSCOM_RED}]` : 'bg-amber-500'
                                 )}>
                                   {violation.severity}
                                 </Badge>
                                 <div className="flex-1">
-                                  <p className="font-medium text-[#1A1A1A]">{violation.rule_name}</p>
-                                  <p className="text-sm text-[#666666] mt-1">{violation.description}</p>
+                                  <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{violation.rule_name}</p>
+                                  <p className="text-sm mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{violation.description}</p>
                                 </div>
                               </div>
                             </div>
@@ -929,11 +919,11 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
 
                 {expense.validation_result.escalation_reasons && expense.validation_result.escalation_reasons.length > 0 && (
                   <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                    <h4 className="font-medium text-[#1A1A1A] mb-2 flex items-center gap-2">
+                    <h4 className="font-medium mb-2 flex items-center gap-2" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                       Escalation Reasons
                     </h4>
-                    <ul className="space-y-1 text-sm text-[#666666]">
+                    <ul className="space-y-1 text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                       {expense.validation_result.escalation_reasons.map((reason, i) => (
                         <li key={i} className="flex items-start gap-2">
                           <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
@@ -946,11 +936,11 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
 
                 {expense.validation_result.aggregated_recommendation && (
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-medium text-[#1A1A1A] mb-2 flex items-center gap-2">
+                    <h4 className="font-medium mb-2 flex items-center gap-2" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
                       <Info className="h-4 w-4 text-blue-600" />
                       Recommendation
                     </h4>
-                    <p className="text-sm text-[#666666]">{expense.validation_result.aggregated_recommendation}</p>
+                    <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{expense.validation_result.aggregated_recommendation}</p>
                   </div>
                 )}
               </CardContent>
@@ -959,38 +949,38 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
         </div>
 
         <div className="space-y-6">
-          <Card className="bg-[#F4F4F4]">
+          <Card style={{ backgroundColor: SWISSCOM_COLORS.CARD_BG }}>
             <CardHeader>
-              <CardTitle className="text-[#1A1A1A]">Audit Timeline</CardTitle>
+              <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Audit Timeline</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex gap-3">
                   <div className="flex flex-col items-center">
-                    <div className="h-8 w-8 rounded-full bg-[#001155] flex items-center justify-center">
+                    <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
                       <CheckCircle className="h-4 w-4 text-white" />
                     </div>
-                    <div className="h-full w-0.5 bg-[#001155] mt-2"></div>
+                    <div className="h-full w-0.5 mt-2" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}></div>
                   </div>
                   <div className="flex-1 pb-4">
-                    <p className="font-medium text-[#1A1A1A]">Submitted</p>
-                    <p className="text-sm text-[#666666]">{formatDate(expense.submitted_at)}</p>
+                    <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Submitted</p>
+                    <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{formatDate(expense.submitted_at)}</p>
                   </div>
                 </div>
 
                 {expense.validation_result && (
                   <div className="flex gap-3">
                     <div className="flex flex-col items-center">
-                      <div className="h-8 w-8 rounded-full bg-[#001155] flex items-center justify-center">
+                      <div className="h-8 w-8 rounded-full flex items-center justify-center" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
                         <CheckCircle className="h-4 w-4 text-white" />
                       </div>
                       {(expense.status === 'escalated' || expense.manager_decision) && (
-                        <div className="h-full w-0.5 bg-[#001155] mt-2"></div>
+                        <div className="h-full w-0.5 mt-2" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}></div>
                       )}
                     </div>
                     <div className="flex-1 pb-4">
-                      <p className="font-medium text-[#1A1A1A]">Validated</p>
-                      <p className="text-sm text-[#666666]">Automated review complete</p>
+                      <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Validated</p>
+                      <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Automated review complete</p>
                     </div>
                   </div>
                 )}
@@ -1003,8 +993,8 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-[#1A1A1A]">Awaiting Manager Review</p>
-                      <p className="text-sm text-[#666666]">
+                      <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Awaiting Manager Review</p>
+                      <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                         {expense.days_pending ? `${expense.days_pending} days pending` : 'Pending'}
                       </p>
                     </div>
@@ -1016,8 +1006,8 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     <div className="flex flex-col items-center">
                       <div className={cn(
                         'h-8 w-8 rounded-full flex items-center justify-center',
-                        expense.manager_decision.decision === 'approved' ? 'bg-green-600' : 'bg-[#F20505]'
-                      )}>
+                        expense.manager_decision.decision === 'approved' ? 'bg-green-600' : ''
+                      )} style={expense.manager_decision.decision === 'rejected' ? { backgroundColor: SWISSCOM_COLORS.SWISSCOM_RED } : {}}>
                         {expense.manager_decision.decision === 'approved' ? (
                           <ThumbsUp className="h-4 w-4 text-white" />
                         ) : (
@@ -1026,12 +1016,12 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <p className="font-medium text-[#1A1A1A]">
+                      <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
                         {expense.manager_decision.decision === 'approved' ? 'Approved' : 'Rejected'} by Manager
                       </p>
-                      <p className="text-sm text-[#666666]">{formatDate(expense.manager_decision.decision_timestamp)}</p>
+                      <p className="text-sm" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{formatDate(expense.manager_decision.decision_timestamp)}</p>
                       {expense.manager_decision.manager_notes && (
-                        <p className="text-sm text-[#666666] mt-2 italic">"{expense.manager_decision.manager_notes}"</p>
+                        <p className="text-sm mt-2 italic" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>"{expense.manager_decision.manager_notes}"</p>
                       )}
                     </div>
                   </div>
@@ -1041,9 +1031,9 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
           </Card>
 
           {onManagerAction && expense.status === 'escalated' && (
-            <Card className="border-2 border-[#0541FF]">
+            <Card className="border-2" style={{ borderColor: SWISSCOM_COLORS.ACTION_BLUE }}>
               <CardHeader>
-                <CardTitle className="text-[#1A1A1A]">Manager Decision</CardTitle>
+                <CardTitle style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Manager Decision</CardTitle>
                 <CardDescription>Review and make a decision on this expense</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1062,7 +1052,8 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                   <Button
                     onClick={() => handleManagerDecision('approved')}
                     disabled={submitting || !managerNotes}
-                    className="bg-[#0541FF] hover:bg-[#0541FF]/90"
+                    className="hover:opacity-90"
+                    style={{ backgroundColor: SWISSCOM_COLORS.ACTION_BLUE }}
                   >
                     {submitting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1077,7 +1068,8 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     onClick={() => handleManagerDecision('rejected')}
                     disabled={submitting || !managerNotes}
                     variant="outline"
-                    className="border-[#F20505] text-[#F20505] hover:bg-[#F20505] hover:text-white"
+                    className="hover:bg-[#F20505] hover:text-white"
+                    style={{ borderColor: SWISSCOM_COLORS.SWISSCOM_RED, color: SWISSCOM_COLORS.SWISSCOM_RED }}
                   >
                     {submitting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -1119,11 +1111,11 @@ function ManagerQueueView({ expenses, onViewExpense }: {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-[#1A1A1A]">Manager Review Queue</h1>
-        <p className="text-[#666666]">Expenses requiring manager approval</p>
+        <h1 className="text-3xl font-bold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Manager Review Queue</h1>
+        <p style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Expenses requiring manager approval</p>
       </div>
 
-      <Card className="bg-gradient-to-r from-[#0541FF] to-[#9428FF] text-white">
+      <Card className="text-white" style={{ background: `linear-gradient(to right, ${SWISSCOM_COLORS.GRADIENT_START}, ${SWISSCOM_COLORS.GRADIENT_MID}, ${SWISSCOM_COLORS.GRADIENT_END})` }}>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
@@ -1136,7 +1128,7 @@ function ManagerQueueView({ expenses, onViewExpense }: {
       </Card>
 
       <Card>
-        <CardHeader className="bg-[#001155] text-white rounded-t-lg">
+        <CardHeader className="text-white rounded-t-lg" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
           <div className="flex items-center justify-between">
             <CardTitle>Escalated Expenses</CardTitle>
             <div className="flex items-center gap-2">
@@ -1169,13 +1161,13 @@ function ManagerQueueView({ expenses, onViewExpense }: {
             <TableBody>
               {filteredExpenses.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-[#666666]">
+                  <TableCell colSpan={8} className="text-center py-8" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>
                     No expenses requiring review
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredExpenses.map((expense) => (
-                  <TableRow key={expense.id} className="hover:bg-[#F4F4F4]">
+                  <TableRow key={expense.id} style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }} className="hover:bg-[#F4F4F4]">
                     <TableCell className="font-medium">{expense.id}</TableCell>
                     <TableCell>{expense.employee_name}</TableCell>
                     <TableCell>{expense.category}</TableCell>
@@ -1192,9 +1184,8 @@ function ManagerQueueView({ expenses, onViewExpense }: {
                     </TableCell>
                     <TableCell>
                       <span className={cn(
-                        'font-medium',
-                        expense.days_pending && expense.days_pending > 3 ? 'text-[#F20505]' : 'text-[#666666]'
-                      )}>
+                        'font-medium'
+                      )} style={{ color: expense.days_pending && expense.days_pending > 3 ? SWISSCOM_COLORS.SWISSCOM_RED : SWISSCOM_COLORS.SECONDARY_TEXT }}>
                         {expense.days_pending || 0} days
                       </span>
                     </TableCell>
@@ -1202,7 +1193,8 @@ function ManagerQueueView({ expenses, onViewExpense }: {
                       <Button
                         onClick={() => onViewExpense(expense)}
                         size="sm"
-                        className="bg-[#0541FF] hover:bg-[#0541FF]/90"
+                        className="hover:opacity-90"
+                        style={{ backgroundColor: SWISSCOM_COLORS.ACTION_BLUE }}
                       >
                         Review
                       </Button>
@@ -1225,7 +1217,7 @@ function ManagerQueueView({ expenses, onViewExpense }: {
 export default function Home() {
   const [currentView, setCurrentView] = useState('dashboard')
   const [userRole, setUserRole] = useState<'employee' | 'manager'>('employee')
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES)
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null)
 
   // Load expenses from localStorage on mount
@@ -1234,7 +1226,7 @@ export default function Home() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored)
-        setExpenses([...parsed, ...INITIAL_EXPENSES])
+        setExpenses(parsed)
       } catch (e) {
         console.error('Failed to parse stored expenses', e)
       }
@@ -1331,7 +1323,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white">
+    <div className="flex min-h-screen" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
       <Sidebar
         currentView={currentView}
         onViewChange={setCurrentView}
@@ -1339,13 +1331,13 @@ export default function Home() {
       />
 
       <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-10 bg-white border-b border-gray-200 px-8 py-4">
+        <header className="sticky top-0 z-10 border-b border-gray-200 px-8 py-4" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Building className="h-6 w-6 text-[#001155]" />
+              <Building className="h-6 w-6" style={{ color: SWISSCOM_COLORS.CORPORATE_BLUE }} />
               <div>
-                <h2 className="font-semibold text-[#1A1A1A]">Swisscom Expense Management</h2>
-                <p className="text-xs text-[#666666]">Automated validation & approval workflow</p>
+                <h2 className="font-semibold" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>Swisscom Expense Management</h2>
+                <p className="text-xs" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>Automated validation & approval workflow</p>
               </div>
             </div>
 
@@ -1357,7 +1349,8 @@ export default function Home() {
                   setUserRole('employee')
                   setCurrentView('dashboard')
                 }}
-                className={userRole === 'employee' ? 'bg-[#0541FF]' : ''}
+                className={userRole === 'employee' ? 'hover:opacity-90' : ''}
+                style={userRole === 'employee' ? { backgroundColor: SWISSCOM_COLORS.ACTION_BLUE } : {}}
               >
                 Employee View
               </Button>
@@ -1368,7 +1361,8 @@ export default function Home() {
                   setUserRole('manager')
                   setCurrentView('manager-queue')
                 }}
-                className={userRole === 'manager' ? 'bg-[#0541FF]' : ''}
+                className={userRole === 'manager' ? 'hover:opacity-90' : ''}
+                style={userRole === 'manager' ? { backgroundColor: SWISSCOM_COLORS.ACTION_BLUE } : {}}
               >
                 Manager View
               </Button>
