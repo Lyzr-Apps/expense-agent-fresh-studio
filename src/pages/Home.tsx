@@ -86,21 +86,11 @@ interface ValidationSummary {
   }
   policy_compliance: {
     passed: boolean
-    violations: Array<{
-      policy_name: string
-      violation_type: string
-      severity: string
-      description: string
-    }>
+    violations: string[]  // ✅ Simple string array (matches actual API response)
   }
   business_rules: {
     passed: boolean
-    violations: Array<{
-      rule_name: string
-      violation_type: string
-      severity: string
-      description: string
-    }>
+    violations: string[]  // ✅ Simple string array (matches actual API response)
   }
 }
 
@@ -536,7 +526,7 @@ function Sidebar({ currentView, onViewChange, userRole }: {
   const items = userRole === 'manager' ? managerItems : employeeItems
 
   return (
-    <div className="w-64 h-screen text-white flex flex-col" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
+    <aside className="w-64 flex-shrink-0 text-white flex flex-col overflow-y-auto" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
       <div className="p-6">
         <div className="flex items-center gap-2 mb-8">
           <Receipt className="h-8 w-8" />
@@ -581,7 +571,7 @@ function Sidebar({ currentView, onViewChange, userRole }: {
           </div>
         </div>
       </div>
-    </div>
+    </aside>
   )
 }
 
@@ -1176,22 +1166,20 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
                       {expense.validation_result.validation_summary.policy_compliance.violations.length > 0 ? (
-                        <div className="space-y-3">
-                          {expense.validation_result.validation_summary.policy_compliance.violations.map((violation, i) => (
-                            <div key={i} className="p-3 bg-white rounded border border-red-200">
-                              <div className="flex items-start gap-2">
-                                <Badge className={cn(
-                                  violation.severity === 'high' ? `bg-[${SWISSCOM_COLORS.SWISSCOM_RED}]` : 'bg-amber-500'
-                                )}>
-                                  {violation.severity}
-                                </Badge>
-                                <div className="flex-1">
-                                  <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{violation.policy_name}</p>
-                                  <p className="text-sm mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{violation.description}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium mb-2" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
+                            Violations Found:
+                          </p>
+                          <ul className="space-y-2">
+                            {expense.validation_result.validation_summary.policy_compliance.violations.map((violation, idx) => (
+                              <li key={idx} className="flex items-start gap-2 p-3 bg-red-50 rounded border border-red-200">
+                                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                                <span className="text-sm" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>
+                                  {violation}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       ) : (
                         <p className="text-sm text-green-600">All policy checks passed</p>
@@ -1217,22 +1205,20 @@ function ExpenseDetailView({ expense, onBack, onManagerAction }: {
                     </AccordionTrigger>
                     <AccordionContent className="pt-3">
                       {expense.validation_result.validation_summary.business_rules.violations.length > 0 ? (
-                        <div className="space-y-3">
-                          {expense.validation_result.validation_summary.business_rules.violations.map((violation, i) => (
-                            <div key={i} className="p-3 bg-white rounded border border-red-200">
-                              <div className="flex items-start gap-2">
-                                <Badge className={cn(
-                                  violation.severity === 'high' ? `bg-[${SWISSCOM_COLORS.SWISSCOM_RED}]` : 'bg-amber-500'
-                                )}>
-                                  {violation.severity}
-                                </Badge>
-                                <div className="flex-1">
-                                  <p className="font-medium" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>{violation.rule_name}</p>
-                                  <p className="text-sm mt-1" style={{ color: SWISSCOM_COLORS.SECONDARY_TEXT }}>{violation.description}</p>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium mb-2" style={{ color: SWISSCOM_COLORS.PRIMARY_HEADING }}>
+                            Violations Found:
+                          </p>
+                          <ul className="space-y-2">
+                            {expense.validation_result.validation_summary.business_rules.violations.map((violation, idx) => (
+                              <li key={idx} className="flex items-start gap-2 p-3 bg-red-50 rounded border border-red-200">
+                                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" style={{ color: SWISSCOM_COLORS.SWISSCOM_RED }} />
+                                <span className="text-sm" style={{ color: SWISSCOM_COLORS.BODY_TEXT }}>
+                                  {violation}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       ) : (
                         <p className="text-sm text-green-600">All business rules passed</p>
@@ -2039,15 +2025,15 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
+    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
       <Sidebar
         currentView={currentView}
         onViewChange={setCurrentView}
         userRole={userRole}
       />
 
-      <div className="flex-1 overflow-auto">
-        <header className="sticky top-0 z-10 border-b border-gray-200 px-8 py-4" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
+      <main className="flex-1 overflow-y-auto flex flex-col" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
+        <header className="sticky top-0 z-10 border-b border-gray-200 px-8 py-4 flex-shrink-0" style={{ backgroundColor: SWISSCOM_COLORS.PAGE_BG }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Building className="h-6 w-6" style={{ color: SWISSCOM_COLORS.CORPORATE_BLUE }} />
@@ -2086,10 +2072,10 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="p-8">
+        <div className="p-8 flex-1">
           {renderView()}
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   )
 }
