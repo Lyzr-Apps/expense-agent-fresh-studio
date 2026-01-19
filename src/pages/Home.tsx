@@ -527,6 +527,15 @@ function Sidebar({ currentView, onViewChange, userRole }: {
 
   return (
     <aside className="w-64 flex-shrink-0 text-white flex flex-col overflow-y-auto" style={{ backgroundColor: SWISSCOM_COLORS.CORPORATE_BLUE }}>
+      {/* Swisscom Logo at top */}
+      <div className="p-6 flex items-center justify-center border-b border-white/10">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f/Swisscom_Logo.svg/500px-Swisscom_Logo.svg.png"
+          alt="Swisscom"
+          className="h-8 w-auto"
+        />
+      </div>
+
       <div className="p-6">
         <div className="flex items-center gap-2 mb-8">
           <Receipt className="h-8 w-8" />
