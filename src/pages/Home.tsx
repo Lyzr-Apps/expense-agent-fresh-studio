@@ -1640,21 +1640,26 @@ function BusinessRulesView() {
 
       setUploadProgress(60)
 
-      // Call ingest API
+      // Call ingest API - construct proper URLs from asset_ids
       const ingestResponse = await fetch('/api/ingest', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_LYZR_API_KEY || ''
+        },
         body: JSON.stringify({
           rag_id: RAG_ID,
           files: uploadResult.files?.map(f => ({
             filename: f.file_name,
-            asset_id: f.asset_id
+            url: `https://agent-prod.studio.lyzr.ai/v3/assets/${f.asset_id}`
           })) || []
         })
       })
 
       if (!ingestResponse.ok) {
-        throw new Error('Failed to ingest documents into knowledge base')
+        const errorText = await ingestResponse.text()
+        console.error('Ingest error:', errorText)
+        throw new Error(`Failed to ingest documents: ${errorText}`)
       }
 
       setUploadProgress(90)
